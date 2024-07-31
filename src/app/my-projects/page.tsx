@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import FilesParticles from "@/components/FilesParticles";
 import ExcelDropper from "@/components/ExcelDropper";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
 const Page = () => {
   const [data, setData] = useState<any[]>([]);
@@ -84,15 +84,16 @@ const Page = () => {
             <div id="graph" className="mt-4 w-full h-[300px] md:h-[500px]">
               {selectedColumn && (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                    <Legend />
-                    <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" />
+                  <YAxis padding={{ top: 20 }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
+                  <Legend />
+                  <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]}>
+                    <LabelList dataKey="value" position="top" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
               )}
             </div>
           </>
