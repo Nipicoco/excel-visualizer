@@ -34,11 +34,11 @@ const Page = () => {
   };
 
   return (
-    <div className="flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen bg-[#0C011A] bg-repeat w-full">
-      <div className="absolute right-0 top-0 h-full w-[100%] z-[1]">
+    <div className="flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen bg-[#0C011A] bg-repeat w-full overflow-x-hidden">
+      <div className="absolute right-0 top-0 h-full w-full z-[1]">
         <FilesParticles />
       </div>
-      <div className="flex flex-col gap-3 w-full md:w-1/2 z-[3]">
+      <div className="flex flex-col gap-3 w-full md:w-1/2 z-[3] px-4">
         <h1 className="text-[50px] text-white font-semibold">
           Drop your file here<span className="text-red-500">.</span>
         </h1>
@@ -72,9 +72,9 @@ const Page = () => {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 w-full">
               <label htmlFor="column-select" className="text-white">Select Column for Graph:</label>
-              <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="ml-2 p-2 rounded">
+              <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="ml-2 p-2 rounded w-full md:w-auto">
                 <option value="">Select a column</option>
                 {Object.keys(data[0]).map((key) => (
                   <option key={key} value={key}>{key}</option>
@@ -83,17 +83,21 @@ const Page = () => {
             </div>
             <div id="graph" className="mt-4 w-full h-[300px] md:h-[500px]">
               {selectedColumn && (
-                <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" />
-                  <YAxis padding={{ top: 20 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                  <Legend />
-                  <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]}>
-                    <LabelList dataKey="value" position="top" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                <>
+                  <h2 className="text-white text-center mb-2">{selectedColumn}</h2>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis padding={{ top: 20 }} />
+                      <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
+                      <Legend />
+                      <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]}>
+                        <LabelList dataKey="value" position="top" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </>
               )}
             </div>
           </>
