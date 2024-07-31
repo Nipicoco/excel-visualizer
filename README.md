@@ -6,7 +6,7 @@ Install with npm or yarn
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/Nipicoco/excel-visualization.git
+$ git clone https://github.com/Nipicoco/excel-visualizer.git
 
 # Go into the repository
 $ cd excel-visualization
