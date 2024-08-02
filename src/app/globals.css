@@ -1,20 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
 
-@keyframes rotation {
-  from {
-    transform: rotate(0deg);
+  @keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
-  to {
-    transform: rotate(360deg);
+
+  .slow-spin {
+    animation: rotation 5s linear infinite;
   }
-}
 
-.slow-spin {
-  animation: rotation 5s linear infinite;
-}
+  .swiper-pagination-bullet {
+    background: #fff !important;
+  }
 
-.swiper-pagination-bullet {
-  background: #fff !important;
-}
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .blinking-dot {
+    animation: blink 1s infinite;
+  }
+
+  .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .chart-item {
+    flex: 1 1 calc(50% - 20px); /* Two items per row with a gap */
+    min-width: 300px; /* Ensure items don't get too small */
+  }
+
+  @media (max-width: 768px) {
+    .chart-item {
+      flex: 1 1 100%; /* Full width on small screens */
+      padding-bottom: 80px; /* Add padding to prevent overlap */
+    }
+  }
