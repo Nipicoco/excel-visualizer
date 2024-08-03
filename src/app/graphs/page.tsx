@@ -45,7 +45,28 @@ const Page = () => {
   const [availableMonths, setAvailableMonths] = useState<number[]>([]);
   const [selectedFilterYear, setSelectedFilterYear] = useState<number | null>(null);
   const [selectedFilterMonth, setSelectedFilterMonth] = useState<number | null>(null);
+  const [isLightMode, setIsLightMode] = useState(false);
 
+  const toggleLightMode = () => {
+    setIsLightMode(!isLightMode);
+    const pageContainer = document.querySelector('.page-container');
+    if (pageContainer) {
+      if (isLightMode) {
+        pageContainer.classList.remove('light-mode');
+        pageContainer.classList.add('dark-mode');
+      } else {
+        pageContainer.classList.remove('dark-mode');
+        pageContainer.classList.add('light-mode');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const pageContainer = document.querySelector('.page-container');
+    if (pageContainer) {
+      pageContainer.classList.add('dark-mode');
+    }
+  }, []);
 
   const checkColumnAbsenceDays = (data: any[]) => {
     if (data.length > 0 && data[0].hasOwnProperty("ימי היעדרות של הנפגע")) {
@@ -357,6 +378,11 @@ const Page = () => {
         <FilesParticles />
       </div>
       <div className="flex flex-col gap-3 w-full md:w-4/5 z-[3] px-4">
+        <div className="flex justify-end">
+        <button className="bg-gray-800 text-white p-2 rounded-full" onClick={toggleLightMode}>
+            {isLightMode ? "🌙✨" : "🌞🍃"}
+          </button>
+        </div>
         <h1 className="text-[50px] text-white font-semibold text-right">
           .Drop your file here
         </h1>

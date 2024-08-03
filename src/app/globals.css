@@ -24,7 +24,27 @@
   50% { opacity: 0; }
   100% { opacity: 1; }
 }
+.toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #333;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
+.toggle-button:hover {
+  background-color: #555;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
+}
 .blinking-dot {
   animation: blink 1s infinite;
 }
@@ -39,10 +59,17 @@
 }
 .page-container {
   position: relative;
-  background-image: url("/assets/nightMode.jpg");
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  transition: background-image 0.5s ease-in-out; /* Transition only background image */
+  opacity: 0;
+  overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+.page-container.light-mode,
+.page-container.dark-mode {
+  opacity: 1;
 }
 
 .page-container::before {
@@ -55,6 +82,38 @@
   background: rgba(0, 0, 0, 0.5); /* Adjust the opacity as needed */
   pointer-events: none;
 }
+
+.page-container.light-mode {
+  background-image: url("/assets/lightMode.jpg");
+}
+
+.page-container.dark-mode {
+  background-image: url("/assets/nightMode.jpg");
+}
+
+.page-container.light-mode-enter::before,
+.page-container.light-mode-enter-active::before,
+.page-container.dark-mode-enter::before,
+.page-container.dark-mode-enter-active::before {
+  transition: transform 0.5s ease-in-out; /* Transition transform for ::before pseudo-element */
+}
+
+.page-container.light-mode-enter::before {
+  transform: translateX(100%); /* Start from the right */
+}
+
+.page-container.light-mode-enter-active::before {
+  transform: translateX(0); /* Move to the center */
+}
+
+.page-container.dark-mode-enter::before {
+  transform: translateX(0); /* Start from the center */
+}
+
+.page-container.dark-mode-enter-active::before {
+  transform: translateX(-100%); /* Move to the left */
+}
+
 .chart-item {
   flex: 1 1 calc(50% - 20px); /* Two items per row with a gap */
   min-width: 300px; /* Ensure items don't get too small */
