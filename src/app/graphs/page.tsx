@@ -9,14 +9,16 @@ import Select from 'react-select';
 import { excelDateToJSDate, isDateColumn, exportToImage, getUniqueKeys } from "@/utils";
 import "@/app/globals.css";
 import { getRandomColor } from "@/utils";
+import { ClipLoader } from "react-spinners";
 
 const Page = () => {
   const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedColumn, setSelectedColumn] = useState<string>("");
   const [chartData, setChartData] = useState<any[]>([]);
   const [showBarChart, setShowBarChart] = useState<boolean>(false);
   const [showAreaChart, setShowAreaChart] = useState<boolean>(false);
-  const [referenceColumn, setReferenceColumn] = useState<string>("");
+  const [referenceColumn, setReferenceColumn] = useState<string>("event date");
   const [isDate, setIsDate] = useState<boolean>(false);
   const [years, setYears] = useState<number[]>([]);
   const [months, setMonths] = useState<number[]>([]);
@@ -26,16 +28,35 @@ const Page = () => {
   const [endMonth, setEndMonth] = useState<number | null>(null);
   const [lineChartData, setLineChartData] = useState<any[]>([]);
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
-  const [useReferenceColumn, setUseReferenceColumn] = useState<boolean>(false);
-  const [normalBarChartData, setNormalBarChartData] = useState<any[]>([]);
-  const [showNormalBarGraph, setShowNormalBarGraph] = useState<boolean>(false);
-  const [showNormalLineGraph, setShowNormalLineGraph] = useState<boolean>(false);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [useReferenceColumn, setUseReferenceColumn] = useState<boolean>(true);
   const [useDateRangeFilter, setUseDateRangeFilter] = useState<boolean>(false);
-  const [selectedNormalGraphTypes, setSelectedNormalGraphTypes] = useState<string[]>([]);
-  const [selectedReferenceGraphTypes, setSelectedReferenceGraphTypes] = useState<string[]>([]);
-  const isAnyNormalGraphChecked = selectedNormalGraphTypes.length > 0;
-  const isAnyReferenceGraphChecked = selectedReferenceGraphTypes.length > 0;
+  const [selectedReferenceGraphType, setSelectedReferenceGraphType] = useState<string>("");
+  const isAnyReferenceGraphChecked = selectedReferenceGraphType !== "";
+  const [graphConfigs, setGraphConfigs] = useState<any[]>([]);
+  const [showChartsHeader, setShowChartsHeader] = useState<boolean>(false);
+
+  const addGraph = () => {
+    const newConfig = {
+      selectedColumn,
+      useReferenceColumn,
+      referenceColumn,
+      selectedReferenceGraphType,
+      selectedNames,
+      startYear,
+      startMonth,
+      endYear,
+      endMonth,
+      isDate,
+      useDateRangeFilter,
+      lineChartData: [...lineChartData],
+      chartData: [...chartData],
+      years: [...years],
+    };
+    setGraphConfigs([...graphConfigs, newConfig]);
+    setShowChartsHeader(true);
+  };
+
   const handleColumnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const column = event.target.value;
     setSelectedColumn(column);
@@ -76,44 +97,17 @@ const Page = () => {
     const selected = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
     setSelectedNames(selected);
   };
-  const filteredNormalBarChartData = normalBarChartData.filter(item => selectedNames.includes(item.name));
-  const handleNormalGraphTypeChange = (selectedOptions: any) => {
-    const selected = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
-    setSelectedNormalGraphTypes(selected);
+  const handleReferenceGraphTypeChange = (selectedOption: any) => {
+    const selected = selectedOption ? selectedOption.value : "";
+    setSelectedReferenceGraphType(selected);
+    if (selected === 'bar') {
+      setUseDateRangeFilter(false); // Hide date range filter if bar chart is selected
+    }
   };
-  const handleReferenceGraphTypeChange = (selectedOptions: any) => {
-    const selected = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
-    setSelectedReferenceGraphTypes(selected);
-  };
-  const normalGraphTypeOptions = [
-    { value: 'normalBar', label: 'Normal Bar Graph' },
-    { value: 'normalLine', label: 'Normal Line Graph' },
-  ];
   const referenceGraphTypeOptions = [
     { value: 'bar', label: 'Bar Chart' },
     { value: 'area', label: 'Area Chart' },
   ];
-
-
-  //Effect for Normal Bar Chart
-  useEffect(() => {
-    if (selectedColumn && data.length > 0) {
-      const counts = data.reduce((acc, row) => {
-        const value = row[selectedColumn];
-        if (value) {
-          acc[value] = (acc[value] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>);
-
-      const transformedData = Object.keys(counts).map(key => ({
-        name: key,
-        value: counts[key],
-      }));
-
-      setNormalBarChartData(transformedData);
-    }
-  }, [selectedColumn, data]);
 
   //Effect for Referenced Line Chart
   useEffect(() => {
@@ -144,6 +138,8 @@ const Page = () => {
         ...counts[year],
       }));
 
+      console.log(filteredData)
+
       setLineChartData(transformedData);
       setSelectedNames(getUniqueKeys(transformedData));
     }
@@ -160,7 +156,8 @@ const Page = () => {
                 return date >= startDate && date <= endDate;
             })
             : data;
-
+          
+        
         const counts = filteredData.reduce((acc, row) => {
             const value = row[selectedColumn];
             const date = excelDateToJSDate(row[referenceColumn]);
@@ -192,7 +189,7 @@ const Page = () => {
             });
             return newItem;
         });
-
+        console.log(completeData)
         setChartData(completeData);
     }
   }, [selectedColumn, data, startYear, startMonth, endYear, endMonth, referenceColumn, selectedNames]);
@@ -202,13 +199,7 @@ const Page = () => {
     if (!useReferenceColumn) {
       setShowBarChart(false);
       setShowAreaChart(false);
-      setShowNormalBarGraph(false);
-      setShowNormalLineGraph(false);
-      setSelectedReferenceGraphTypes([]);
-    } else {
-      setShowNormalBarGraph(false);
-      setShowNormalLineGraph(false);
-      setSelectedNormalGraphTypes([]);
+      setSelectedReferenceGraphType("");
     }
   }, [useReferenceColumn]);
 
@@ -224,7 +215,38 @@ const Page = () => {
     }
   }, [useDateRangeFilter, data]);
 
-  
+  const handleDataChange = (newData: any[]) => {
+    setLoading(true);
+    const randomDelay = Math.random() * (2500 - 1000) + 1000;
+    setTimeout(() => {
+      setData(newData);
+      setLoading(false);
+    }, randomDelay);
+  };
+
+  useEffect(() => {
+    if (data.length > 0) {
+      const columnExists = data[0].hasOwnProperty("event date");
+      if (columnExists) {
+        setReferenceColumn("event date");
+        setIsDate(isDateColumn(data, "event date"));
+
+        if (isDateColumn(data, "event date")) {
+          const dates = data.map(row => excelDateToJSDate(row["event date"]));
+          const uniqueYears = Array.from(new Set(dates.map(date => date.getFullYear()))).sort((a, b) => a - b);
+          const uniqueMonths = Array.from(new Set(dates.map(date => date.getMonth()))).sort((a, b) => a - b);
+          setYears(uniqueYears);
+          setMonths(uniqueMonths);
+        } else {
+          setYears([]);
+          setMonths([]);
+        }
+        console.log("Reference column 'event date' found and selected.");
+      } else {
+        console.log("Reference column 'event date' not found.");
+      }
+    }
+  }, [data]);
 
   return (
     <div className="flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen bg-[#0C011A] bg-repeat w-full overflow-x-hidden rtl pb-10">
@@ -238,245 +260,193 @@ const Page = () => {
         <p className="max-w-[400px] text-[16px] text-gray-200 md:text-gray-400">
           Just drag and drop or click to select a file, and we will handle the rest.
         </p>
-        <ExcelDropper onDataChange={setData} />
-        {data.length > 0 && (
-          <>
-            <h2 className="text-[30px] text-white font-semibold mt-4">Excel Data</h2>
-            <div className="overflow-auto max-h-[40rem] w-full">
-              <table className="min-w-full bg-white w-full">
-                <thead>
-                  <tr>
-                    {Object.keys(data[0]).map((key) => (
-                      <th key={key} className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700 break-words">
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((row, index) => (
-                    <tr key={index}>
-                      {Object.keys(data[0]).map((key, i) => (
-                        <td key={i} className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700 break-words">
-                          {row[key] !== undefined ? row[key] as React.ReactNode : (key === "empty do not delete" ? "empty" : "")}
-                        </td>
+        <ExcelDropper onDataChange={handleDataChange} />
+        {loading ? (
+          <div className="flex flex-col items-center mt-4">
+            <ClipLoader color="#ffffff" size={50} />
+            <p className="text-white mt-2">Loading data, please wait</p>
+          </div>
+        ) : (
+          data.length > 0 && (
+            <>
+              <h2 className="text-[30px] text-white font-semibold mt-4">Excel Data</h2>
+              <div className="overflow-auto max-h-[40rem] w-full rounded-lg">
+                <table className="min-w-full bg-white w-full rounded-lg">
+                  <thead className="rounded-t-lg">
+                    <tr>
+                      {Object.keys(data[0]).map((key) => (
+                        <th key={key} className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700 break-words">
+                          {key}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <h2 className="text-[30px] text-white font-semibold mt-4">Chart Configuration</h2>
-            <div className="mt-4 w-full flex flex-col">
-              <label htmlFor="column-select" className="text-white">Select Column for Graph:</label>
-              <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-1/5">
-                <option value="">None</option>
-                {Object.keys(data[0]).map((key) => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-            {selectedColumn && (
-              <>
-                <div className="mt-4 w-full flex flex-col">
-                  <label className="text-white">
-                    <input type="checkbox" checked={useReferenceColumn} onChange={() => setUseReferenceColumn(!useReferenceColumn)} className="mr-2" />
-                    Use Reference Column
-                  </label>
-                </div>
-                {!useReferenceColumn && (
-                  <div className="mt-4 w-full flex flex-col">
-                    <label htmlFor="normal-graph-type-select" className="text-white">Select Graphs:</label>
-                    <Select
-                      id="normal-graph-type-select"
-                      isMulti
-                      value={selectedNormalGraphTypes.map(type => ({ value: type, label: normalGraphTypeOptions.find(option => option.value === type)?.label }))}
-                      onChange={handleNormalGraphTypeChange}
-                      options={normalGraphTypeOptions}
-                      className="mt-2 w-full md:w-1/5"
-                    />
-                  </div>
-                )}
-                {useReferenceColumn && (
-                  <div className="mt-4 w-full flex flex-col">
-                    <div className="flex flex-col">
-                      <label htmlFor="reference-column-select" className="text-white">Select Reference Column:</label>
-                      <select id="reference-column-select" value={referenceColumn} onChange={handleReferenceColumnChange} className="mt-2 p-2 rounded w-full md:w-1/5">
-                        <option value="">None</option>  
-                        {Object.keys(data[0]).map((key) => (
-                          <option key={key} value={key}>{key}</option>
+                  </thead>
+                  <tbody className="rounded-b-lg">
+                    {data.map((row, index) => (
+                      <tr key={index}>
+                        {Object.keys(data[0]).map((key, i) => (
+                          <td key={i} className="py-2 px-4 border-b border-gray-200 text-xs text-gray-700 break-words">
+                            {row[key] !== undefined ? row[key] as React.ReactNode : (key === "empty do not delete" ? "empty" : "")}
+                          </td>
                         ))}
-                      </select>
-                    </div>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <h2 className="text-[30px] text-white font-semibold mt-4 text-center">Chart Configuration</h2>
+              <div className="mt-4 w-full flex flex-col items-center">
+                <label htmlFor="column-select" className="text-white">Select Column for Graph:</label>
+                <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-2/5">
+                  <option value="">None</option>
+                  {Object.keys(data[0]).map((key) => (
+                    <option key={key} value={key}>{key}</option>
+                  ))}
+                </select>
+              </div>
+              {selectedColumn && (
+                <>
+                  <div className="mt-4 w-full flex flex-col items-center">
                     {referenceColumn && (
-                      <div className="mt-4 w-full flex flex-col">
-                        <label htmlFor="reference-graph-type-select" className="text-white">Select Graphs:</label>
+                      <div className="mt-4 w-full flex flex-col items-center">
+                        <label htmlFor="reference-graph-type-select" className="text-white">Select Graph:</label>
                         <Select
                           id="reference-graph-type-select"
-                          isMulti
-                          value={selectedReferenceGraphTypes.map(type => ({ value: type, label: referenceGraphTypeOptions.find(option => option.value === type)?.label }))}
+                          value={selectedReferenceGraphType ? { value: selectedReferenceGraphType, label: referenceGraphTypeOptions.find(option => option.value === selectedReferenceGraphType)?.label } : null}
                           onChange={handleReferenceGraphTypeChange}
                           options={referenceGraphTypeOptions}
-                          className="mt-2 w-full md:w-1/5"
+                          className="mt-2 w-full md:w-2/5"
                         />
                       </div>
                     )}
                   </div>
-                )}
-                {(isAnyNormalGraphChecked || isAnyReferenceGraphChecked) && (
-                  <div className="mt-4 w-full flex flex-col">
-                    <label htmlFor="name-select" className="text-white">Select Names to Display:</label>
-                    <Select
-                      id="name-select"
-                      isMulti
-                      value={selectedNames.map(name => ({ value: name, label: name }))}
-                      onChange={handleNameChange}
-                      options={getUniqueKeys(lineChartData).map(key => ({ value: key, label: key }))}
-                      className="mt-2 w-full md:w-1/5"
-                    />
-                  </div>
-                )}
-                {useReferenceColumn && isDate && (
-                  <div className="mt-4 w-full flex flex-col">
-                    <label className="text-white">
-                      <input type="checkbox" checked={useDateRangeFilter} onChange={() => setUseDateRangeFilter(!useDateRangeFilter)} className="mr-2" />
-                      Date Range Filter
-                    </label>
-                    {useDateRangeFilter && (
-                      <div className="mt-4 w-full">
-                        <label className="text-white">From:</label>
-                        <div className="flex gap-2">
-                          <select value={startYear ?? ''} onChange={handleStartYearChange} className="p-2 rounded w-full md:w-auto">
-                            <option value="">Select a year</option>
-                            {years.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                          <select value={startMonth ?? ''} onChange={handleStartMonthChange} className="p-2 rounded w-full md:w-auto">
-                            <option value="">Select a month</option>
-                            {months.map(month => (
-                              <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <label className="text-white mt-4">Until:</label>
-                        <div className="flex gap-2">
-                          <select value={endYear ?? ''} onChange={handleEndYearChange} className="p-2 rounded w-full md:w-auto">
-                            <option value="">Select a year</option>
-                            {years.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                          <select value={endMonth ?? ''} onChange={handleEndMonthChange} className="p-2 rounded w-full md:w-auto">
-                            <option value="">Select a month</option>
-                            {months.map(month => (
-                              <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {(isAnyNormalGraphChecked || isAnyReferenceGraphChecked) && (
-                  <>
-                    <h2 className="text-[30px] text-white font-semibold mt-4">Charts</h2>
-                    <div className="charts-container">
-                      {selectedNormalGraphTypes.includes('normalBar') && (
-                        <div id="graph" className="chart-item mt-4 w-full h-[300px] md:h-[500px]">
-                          <h2 className="text-white text-center mb-2">{selectedColumn}</h2>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={filteredNormalBarChartData}>
-                              <XAxis dataKey="name" />
-                              <YAxis padding={{ top: 20 }} />
-                              <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                              <Legend />
-                              <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]}>
-                                <LabelList dataKey="value" position="top" />
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
-                      {selectedNormalGraphTypes.includes('normalLine') && (
-                        <div id="line-graph" className="chart-item mt-4 w-full h-[300px] md:h-[500px]">
-                          <h2 className="text-white text-center mb-2">{selectedColumn} Line Graph</h2>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={filteredNormalBarChartData}>
-                              <XAxis dataKey="name" />
-                              <YAxis padding={{ top: 20 }} />
-                              <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                              <Legend />
-                              <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2}>
-                                <LabelList dataKey="value" position="top" />
-                              </Line>
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
-                      {useReferenceColumn && referenceColumn && selectedReferenceGraphTypes.includes('bar') && (
-                        <div id="bar-graph" className="chart-item mt-4 w-full h-[300px] md:h-[500px]">
-                          <h2 className="text-white text-center mb-2">{selectedColumn}</h2>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                              <XAxis dataKey="name" interval={0} />
-                              <YAxis padding={{ top: 20 }} />
-                              <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                              <Legend />
-                              {years.map((year) => (
-                                <Bar key={year} dataKey={year.toString()} fill={getRandomColor()} barSize={90}>
-                                  <LabelList dataKey={year.toString()} position="top" offset={15} />
-                                </Bar>
+                  {isAnyReferenceGraphChecked && (
+                    <div className="mt-4 w-full flex flex-col items-center">
+                      <label htmlFor="name-select" className="text-white">Select Names to Display:</label>
+                      <Select
+                        id="name-select"
+                        isMulti
+                        value={selectedNames.map(name => ({ value: name, label: name }))}
+                        onChange={handleNameChange}
+                        options={getUniqueKeys(lineChartData).map(key => ({ value: key, label: key }))}
+                        className="mt-2 w-full md:w-2/5"
+                      />
+                    </div>
+                  )}
+                  {isDate && selectedReferenceGraphType === 'line' && (
+                    <div className="mt-4 w-full flex flex-col items-center">
+                      <label className="text-white">
+                        <input type="checkbox" checked={useDateRangeFilter} onChange={() => setUseDateRangeFilter(!useDateRangeFilter)} className="mr-2" />
+                        Date Range Filter
+                      </label>
+                      {useDateRangeFilter && (
+                        <div className="mt-4 w-full flex flex-col items-center">
+                          <label className="text-white">From:</label>
+                          <div className="flex gap-2">
+                            <select value={startYear ?? ''} onChange={handleStartYearChange} className="p-2 rounded w-full md:w-2/5">
+                              <option value="">Select a year</option>
+                              {years.map(year => (
+                                <option key={year} value={year}>{year}</option>
                               ))}
-                            </BarChart>
-                          </ResponsiveContainer>
-                          <div className="mt-4 w-full flex justify-center">
-                            <button onClick={() => exportToImage('bar-graph', 'bar-chart.png')} className="p-2 bg-blue-500 text-white rounded">Export Bar Chart</button>
+                            </select>
+                            <select value={startMonth ?? ''} onChange={handleStartMonthChange} className="p-2 rounded w-full md:w-2/5">
+                              <option value="">Select a month</option>
+                              {months.map(month => (
+                                <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                              ))}
+                            </select>
                           </div>
-                        </div>
-                      )}
-                      {useReferenceColumn && referenceColumn && selectedReferenceGraphTypes.includes('area') && (
-                        <div id="area-graph" className="chart-item mt-4 w-full h-[300px] md:h-[500px]">
-                          <h2 className="text-white text-center mb-2">{selectedColumn} Line Graph</h2>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                              data={lineChartData}
-                              margin={{
-                                top: 50,
-                                right: 30,
-                                left: 20,
-                                bottom: 5,
-                              }}
-                            >
-                              <XAxis dataKey="year" interval={0} />
-                              <YAxis />
-                              <Tooltip />
-                              <Legend />
-                              {selectedNames.map((key) => (
-                                <Line 
-                                  key={key} 
-                                  type="monotone" 
-                                  dataKey={key} 
-                                  stroke={getRandomColor()} 
-                                  dot={{ r: 7 }} 
-                                  strokeWidth={4} 
-                                >
-                                  <LabelList dataKey={key} position="top" offset={15} />
-                                </Line>
+                          <label className="text-white mt-4">Until:</label>
+                          <div className="flex gap-2">
+                            <select value={endYear ?? ''} onChange={handleEndYearChange} className="p-2 rounded w-full md:w-2/5">
+                              <option value="">Select a year</option>
+                              {years.map(year => (
+                                <option key={year} value={year}>{year}</option>
                               ))}
-                            </LineChart>
-                          </ResponsiveContainer>
-                          <div className="mt-4 w-full flex justify-center">
-                            <button onClick={() => exportToImage('area-graph', 'area-chart.png')} className="p-2 bg-blue-500 text-white rounded">Export Area Chart</button>
+                            </select>
+                            <select value={endMonth ?? ''} onChange={handleEndMonthChange} className="p-2 rounded w-full md:w-2/5">
+                              <option value="">Select a month</option>
+                              {months.map(month => (
+                                <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       )}
                     </div>
-                  </>
-                )}
-              </>
-            )}
-          </>
+                  )}
+                  <div className="flex justify-center mt-4 w-full">
+                    <button onClick={addGraph} className="p-2 bg-green-500 text-white rounded w-full md:w-2/5">Add Graph</button>
+                  </div>
+                  {showChartsHeader && <h2 className="text-[30px] text-white font-semibold mt-4 text-center">Charts</h2>}
+                  <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {graphConfigs.map((config, index) => (
+                      <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
+                        {config.useReferenceColumn && config.referenceColumn && config.selectedReferenceGraphType === 'bar' && (
+                          <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-center items-center mb-20" style={{}}>
+                            <h2 className="text-white text-center mb-2">Bar graph for {config.selectedColumn}</h2>
+                            <div className="mt-4 w-full flex justify-center">
+                              <button onClick={() => exportToImage(`bar-graph-${index}`, 'bar-chart.png')} className="p-2 bg-blue-500 text-white rounded">Export Bar Chart</button>
+                            </div>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={config.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis dataKey="name" interval={0} />
+                                <YAxis padding={{ top: 20 }} />
+                                <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
+                                <Legend />
+                                {config.years.map((year: number) => (
+                                  <Bar key={year} dataKey={year.toString()} fill={getRandomColor()} barSize={90}>
+                                    <LabelList dataKey={year.toString()} position="top" offset={15} />
+                                  </Bar>
+                                ))}
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
+                        {config.useReferenceColumn && config.referenceColumn && config.selectedReferenceGraphType === 'area' && (
+                          <div id={`area-graph-${index}`} className="w-full h-full mt-4">
+                            <h2 className="text-white text-center mb-2 pt-7">Area graph for {config.selectedColumn}</h2>
+                            <div className="mt-4 w-full flex justify-center">
+                              <button onClick={() => exportToImage(`area-graph-${index}`, 'area-chart.png')} className="p-2 bg-blue-500 text-white rounded">Export Area Chart</button>
+                            </div>
+                            <ResponsiveContainer width="100%" height="100%">
+                            
+                              <LineChart
+                                data={config.lineChartData}
+                                margin={{
+                                  top: 20,
+                                  right: 30,
+                                  left: 20,
+                                  bottom: 5,
+                                }}
+                              >
+                                <XAxis dataKey="year" interval={0} />
+                                <YAxis padding={{ top: 20 }}/>
+                                <Tooltip />
+                                <Legend />
+                                {config.selectedNames.map((key: string) => (
+                                  <Line 
+                                    key={key} 
+                                    type="monotone" 
+                                    dataKey={key} 
+                                    stroke={getRandomColor()} 
+                                    dot={{ r: 7 }} 
+                                    strokeWidth={4} 
+                                  >
+                                    <LabelList dataKey={key} position="top" offset={15} />
+                                  </Line>
+                                ))}
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )
         )}
       </div>
     </div>

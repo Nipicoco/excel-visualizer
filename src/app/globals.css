@@ -1,51 +1,50 @@
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  @keyframes rotation {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
   }
-
-  .slow-spin {
-    animation: rotation 5s linear infinite;
+  to {
+    transform: rotate(360deg);
   }
+}
 
-  .swiper-pagination-bullet {
-    background: #fff !important;
-  }
+.slow-spin {
+  animation: rotation 5s linear infinite;
+}
 
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
+.swiper-pagination-bullet {
+  background: #fff !important;
+}
 
-  .blinking-dot {
-    animation: blink 1s infinite;
-  }
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
 
-  .charts-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px 20px;
-  }
+.blinking-dot {
+  animation: blink 1s infinite;
+}
 
+.charts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 20px;
+}
+
+.chart-item {
+  flex: 1 1 calc(50% - 20px); /* Two items per row with a gap */
+  min-width: 300px; /* Ensure items don't get too small */
+  margin-top: 50px;
+}
+
+@media (max-width: 768px) {
   .chart-item {
-    flex: 1 1 calc(50% - 20px); /* Two items per row with a gap */
-    min-width: 300px; /* Ensure items don't get too small */
-    margin-top: 50px;
+    flex: 1 1 100%; /* Full width on small screens */
+    padding-bottom: 80px; /* Add padding to prevent overlap */
   }
-
-  @media (max-width: 768px) {
-    .chart-item {
-      flex: 1 1 100%; /* Full width on small screens */
-      padding-bottom: 80px; /* Add padding to prevent overlap */
-    }
-  }
-
+}

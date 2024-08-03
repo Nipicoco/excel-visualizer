@@ -26,6 +26,8 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-icons": "^4.11.0",
+    "react-select": "^5.8.0",
+    "react-spinners": "^0.14.1",
     "react-tsparticles": "^2.12.2",
     "recharts": "^2.12.7",
     "swiper": "^11.0.3",
