@@ -33,11 +33,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    padding: 20px 20px;
   }
 
   .chart-item {
     flex: 1 1 calc(50% - 20px); /* Two items per row with a gap */
     min-width: 300px; /* Ensure items don't get too small */
+    margin-top: 50px;
   }
 
   @media (max-width: 768px) {
@@ -46,3 +48,4 @@
       padding-bottom: 80px; /* Add padding to prevent overlap */
     }
   }
+
