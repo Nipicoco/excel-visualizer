@@ -46,6 +46,22 @@ const Page = () => {
   const [selectedFilterYear, setSelectedFilterYear] = useState<number | null>(null);
   const [selectedFilterMonth, setSelectedFilterMonth] = useState<number | null>(null);
 
+
+  const checkColumnAbsenceDays = (data: any[]) => {
+    if (data.length > 0 && data[0].hasOwnProperty("ימי היעדרות של הנפגע")) {
+      const absenceDaysData = data.map(row => row["ימי היעדרות של הנפגע"]);
+      console.log("Column 'ימי היעדרות של הנפגע' exists. Data:", absenceDaysData);
+      return absenceDaysData;
+    } else {
+      console.log("Column 'ימי היעדרות של הנפגע' does not exist.");
+      return null;
+    }
+  };
+  
+  
+  
+  
+
   const addGraph = () => {
     const newConfig = {
       selectedColumn,
@@ -286,6 +302,7 @@ const Page = () => {
     setTimeout(() => {
       setData(newData);
       setLoading(false);
+      checkColumnAbsenceDays(newData); // Check for column "ימי היעדרות של הנפגע" after data is loaded
     }, randomDelay);
   };
 
@@ -334,7 +351,8 @@ const Page = () => {
   }, [filterLineChart, data, referenceColumn]);
   
   return (
-    <div className="flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen bg-[#0C011A] bg-repeat w-full overflow-x-hidden rtl pb-10">
+    
+    <div className="page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10">
       <div className="absolute right-0 top-0 h-full w-full z-[1]">
         <FilesParticles />
       </div>
@@ -353,32 +371,32 @@ const Page = () => {
             <>
               <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Excel Data</h2>
               <div className="overflow-auto max-h-[40rem] w-full rounded-lg" style={{borderRadius: '10px' }}>
-                <table className="min-w-full bg-white w-full rounded-lg exceltable">
-                  <thead className="rounded-t-lg">
-                    <tr>
-                      {Object.keys(data[0]).map((key) => (
-                        <th key={key} className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-right text-sm font-semibold text-gray-700 break-words">
-                          {key}
-                        </th>
+              <table className="min-w-full bg-white w-full rounded-lg bg-black bg-opacity-40 text-white">
+                <thead className="rounded-t-lg">
+                  <tr>
+                    {Object.keys(data[0]).map((key) => (
+                      <th key={key} className="py-2 px-4 border-b border-gray-200 bg-black bg-opacity-90 text-right text-sm font-semibold text-white break-words">
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="rounded-b-lg">
+                  {data.map((row, index) => (
+                    <tr key={index}>
+                      {Object.keys(data[0]).map((key, i) => (
+                        <td key={i} className="py-2 px-4 border-b bg-black bg-opacity-70 text-xs text-white break-words">
+                          {row[key] !== undefined ? row[key] as React.ReactNode : (key === "empty do not delete" ? "empty" : "")}
+                        </td>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody className="rounded-b-lg">
-                    {data.map((row, index) => (
-                      <tr key={index}>
-                        {Object.keys(data[0]).map((key, i) => (
-                          <td key={i} className="py-2 px-4 border-b border-gray-200 text-xs text-gray-700 break-words">
-                            {row[key] !== undefined ? row[key] as React.ReactNode : (key === "empty do not delete" ? "empty" : "")}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
               
-              <div className="mt-4 w-full flex flex-col items-center">
-              <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Chart Configuration</h2>
+              <div className="mt-4 w-full flex flex-col items-center bg-black bg-opacity-70 p-4 rounded-lg">
+                <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Chart Configuration</h2>
                 <label htmlFor="column-select" className="text-white" dir="rtl" style={{ textAlign: 'right' }}>Select Column for Graph:</label>
                 <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-2/5" dir="rtl">
                   <option value="">None</option>
@@ -386,10 +404,8 @@ const Page = () => {
                     <option key={key} value={key}>{key}</option>
                   ))}
                 </select>
-              </div>
-              {selectedColumn && (
-                <>
-                  <div className="mt-4 w-full flex flex-col items-center">
+                {selectedColumn && (
+                  <>
                     {referenceColumn && (
                       <div className="mt-4 w-full flex flex-col items-center">
                         <label htmlFor="reference-graph-type-select" className="text-white" dir="rtl">Select Graph:</label>
@@ -402,167 +418,123 @@ const Page = () => {
                         />
                       </div>
                     )}
-                  </div>
-                  {isAnyReferenceGraphChecked && (
-                    <div className="mt-4 w-full flex flex-col items-center text-right">
-                      <label htmlFor="name-select" className="text-white" dir="rtl">Select Names to Display:</label>
-                      <Select
-                        id="name-select"
-                        isMulti
-                        value={selectedNames.map(name => ({ value: name, label: name }))}
-                        onChange={handleNameChange}
-                        options={getUniqueKeys(lineChartData).map(key => ({ value: key, label: key }))}
-                        className="mt-2 w-full md:w-2/5"
-                      />
-                    </div>
-                  )}
-                  {isDate && selectedReferenceGraphType === 'line' && (
-                    <div className="mt-4 w-full flex flex-col items-center">
-                      <label className="text-white">
-                        <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
-                        Date Range Filter
-                      </label>
-                      {useLineChartDateRangeFilter && (
-                        <div className="mt-4 w-full flex flex-col items-center">
-                          <label className="text-white">From:</label>
-                          <div className="flex gap-2">
-                            <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-2/5">
-                              <option value="">Select a year</option>
-                              {years.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                              ))}
-                            </select>
-                            <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-2/5">
-                              <option value="">Select a month</option>
-                              {months.map(month => (
-                                <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <label className="text-white mt-4">Until:</label>
-                          <div className="flex gap-2">
-                            <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-2/5">
-                              <option value="">Select a year</option>
-                              {years.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                              ))}
-                            </select>
-                            <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-2/5">
-                              <option value="">Select a month</option>
-                              {months.map(month => (
-                                <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
-                          </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex justify-center mt-4 w-full">
-                    <button onClick={addGraph} className="p-2 bg-green-500 text-white rounded w-full md:w-2/5">Add Graph</button>
-                  </div>
-                  {graphConfigs.some(config => config.selectedReferenceGraphType === 'bar') && showChartsHeader && (
-                    <h2 className="text-[30px] text-white font-semibold mt-4 text-center">Box Charts</h2>
-                  )}
-                  <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {graphConfigs.filter(config => config.selectedReferenceGraphType === 'bar').map((config, index) => (
-                      <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
-                        <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-center items-center mb-20">
-                          <h2 className="text-white text-center mb-2">Bar graph for {config.selectedColumn}</h2>
-                          <div className="mt-4 w-full flex justify-center">
-                          <button onClick={() => exportToImage(`bar-graph-${index}`, 'bar-chart.png', 800, 600)} className="p-2 text-white rounded" style={{ backgroundColor: 'transparent', color: 'White', marginTop: '30px' }}>Export Bar Chart</button>
-                          </div>
-                          <ResponsiveContainer width="100%" height="100%" style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '10px' }}>
-                          <BarChart data={config.chartData} margin={{ right: 30, left: 20}}>
-                              <XAxis dataKey="name" interval={0} />
-                              <YAxis padding={{ top: 20 }} />
-                              <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
-                              <Legend />
-                              {config.years.map((year: number) => (
-                                <Bar key={year} dataKey={year.toString()} fill={getRandomColor()} barSize={90}>
-                                  <LabelList dataKey={year.toString()} position="top" offset={15} />
-                                </Bar>
-                              ))}
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <h2 className="text-white text-center mb-4 mt-20 text-3xl">Line charts</h2>
-                  <div className="mt-4 w-full flex flex-col items-center">
-                    <label className="text-white">
-                      <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
-                      Date Range Filter
-                    </label>
-                  </div>
-                  {useLineChartDateRangeFilter && (
-                      <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
-                        <label className="text-white">From:</label>
-                        <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                          <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                            <option value="">Select a year</option>
-                            {years.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                          <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                            <option value="">Select a month</option>
-                            {months.map(month => (
-                              <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <label className="text-white mt-4">Until:</label>
-                        <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                          <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                            <option value="">Select a year</option>
-                            {years.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                          <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                            <option value="">Select a month</option>
-                            {months.map(month => (
-                              <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
+                    {isAnyReferenceGraphChecked && (
+                      <div className="mt-4 w-full flex flex-col items-center text-right">
+                        <label htmlFor="name-select" className="text-white" dir="rtl">Select Names to Display:</label>
+                        <Select
+                          id="name-select"
+                          isMulti
+                          value={selectedNames.map(name => ({ value: name, label: name }))}
+                          onChange={handleNameChange}
+                          options={getUniqueKeys(lineChartData).map(key => ({ value: key, label: key }))}
+                          className="mt-2 w-full md:w-2/5"
+                        />
                       </div>
                     )}
-                  <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {graphConfigs.filter(config => config.selectedReferenceGraphType === 'area').map((config, index) => (
-                      <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
-                        <div id={`area-graph-${index}`} className="w-full h-full mt-4">
-                        <h2 className="text-white text-center mb-2">Line graph for {config.selectedColumn}</h2>
-                          <div className="mt-4 w-full flex justify-center">
-                          <button onClick={() => exportToImage(`area-graph-${index}`, 'area-chart.png', 1000, 800)} className="text-white rounded" style={{ backgroundColor: 'transparent', color: 'White', marginTop: '30px' }}>Export Area Chart</button>
-                          </div>
-                          <ResponsiveContainer width="100%" height="100%" style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '10px' }}>
-                          <LineChart data={config.lineChartData} margin={{ top: 20, right: 30, left: 20}}>
-                              <XAxis dataKey="year" interval={0} />
-                              <YAxis padding={{ top: 20 }} />
-                              <Tooltip />
-                              <Legend />
-                              {config.selectedNames.map((key: string) => (
-                                <Line key={key} type="monotone" dataKey={key} stroke={getRandomColor()} dot={{ r: 7 }} strokeWidth={4}>
-                                  <LabelList dataKey={key} position="top" offset={15} />
-                                </Line>
-                              ))}
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
+                    <div className="flex justify-center mt-4 w-full">
+                      <button onClick={addGraph} className="p-2 bg-green-500 text-white rounded w-full md:w-2/5">Add Graph</button>
+                    </div>
+                  </>
+                )}
+              </div>
+              {graphConfigs.some(config => config.selectedReferenceGraphType === 'bar') && showChartsHeader && (
+                <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Box Charts</h2>
               )}
+              <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                {graphConfigs.filter(config => config.selectedReferenceGraphType === 'bar').map((config, index) => (
+                  <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
+                    <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-center items-center mb-20">
+                      <h2 className="text-white text-center mb-2">Bar graph for {config.selectedColumn}</h2>
+                      <div className="mt-4 w-full flex justify-center">
+                        <button onClick={() => exportToImage(`bar-graph-${index}`, 'bar-chart.png', 800, 600)} className="p-2 text-white rounded" style={{ backgroundColor: 'transparent', color: 'White', marginTop: '30px' }}>Export Bar Chart</button>
+                      </div>
+                      <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70" style={{ borderRadius: '10px', padding: '10px' }}>
+                        <BarChart data={config.chartData} margin={{ right: 30, left: 20 }}>
+                          <XAxis dataKey="name" interval={0} />
+                          <YAxis padding={{ top: 20 }} />
+                          <Tooltip contentStyle={{ backgroundColor: 'white', border: 'none' }} />
+                          <Legend />
+                          {config.years.map((year: number) => (
+                            <Bar key={year} dataKey={year.toString()} fill={getRandomColor()} barSize={90}>
+                              <LabelList dataKey={year.toString()} position="top" offset={15} />
+                            </Bar>
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Line charts</h2>
+              <div className="mt-4 w-full flex flex-col items-center">
+                <label className="text-white bg-black bg-opacity-70 p-4 rounded-lg">
+                  <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
+                  Date Range Filter
+                </label>
+              </div>
+              {useLineChartDateRangeFilter && (
+                <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
+                  <label className="text-white">From:</label>
+                  <div className="flex gap-2 w-full md:w-2/5 justify-center">
+                    <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                      <option value="">Select a year</option>
+                      {years.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                    <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                      <option value="">Select a month</option>
+                      {months.map(month => (
+                        <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="text-white mt-4">Until:</label>
+                  <div className="flex gap-2 w-full md:w-2/5 justify-center">
+                    <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                      <option value="">Select a year</option>
+                      {years.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                    <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                      <option value="">Select a month</option>
+                      {months.map(month => (
+                        <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
+                </div>
+              )}
+              <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                {graphConfigs.filter(config => config.selectedReferenceGraphType === 'area').map((config, index) => (
+                  <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
+                    <div id={`area-graph-${index}`} className="w-full h-full mt-4">
+                      <h2 className="text-white text-center mb-2">Line graph for {config.selectedColumn}</h2>
+                      <div className="mt-4 w-full flex justify-center">
+                        <button onClick={() => exportToImage(`area-graph-${index}`, 'area-chart.png', 1000, 800)} className="text-white rounded" style={{ backgroundColor: 'black', color: 'White', opacity: '0.7'}}>Export Area Chart</button>
+                      </div>
+                      <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70 rounded-lg">
+                        <LineChart data={config.lineChartData} margin={{ top: 20, right: 30, left: 20}}>
+                          <XAxis dataKey="year" interval={0} />
+                          <YAxis padding={{ top: 20 }} />
+                          <Tooltip />
+                          <Legend />
+                          {config.selectedNames.map((key: string) => (
+                            <Line key={key} type="monotone" dataKey={key} stroke={getRandomColor()} dot={{ r: 7 }} strokeWidth={4}>
+                              <LabelList dataKey={key} position="top" offset={15} />
+                            </Line>
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </>
-          )
-        )}
+          ))}
+        
       </div>
     </div>
   );
