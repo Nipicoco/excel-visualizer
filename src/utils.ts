@@ -56,7 +56,10 @@ export const jsDateToExcelDate = (date: Date) => {
 };
 
 export const isDateColumn = (data: any[], column: string) => {
-  return data.every(row => !isNaN(Date.parse(excelDateToJSDate(row[column]).toString())));
+  return data.every(row => {
+    const date = excelDateToJSDate(row[column]);
+    return !isNaN(date.getTime());
+  });
 };
 
 export const exportToImage = (id: string, filename: string) => {
