@@ -34,6 +34,10 @@ export const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
+
+
+
+
 export const excelDateToJSDate = (serial: number) => {
   const utc_days = Math.floor(serial - 25569);
   const utc_value = utc_days * 86400;
@@ -62,7 +66,7 @@ export const isDateColumn = (data: any[], column: string) => {
   });
 };
 
-export const exportToImage = (id: string, filename: string) => {
+export const exportToImage2 = (id: string, filename: string) => {
   const element = document.getElementById(id);
   if (element) {
     html2canvas(element).then(canvas => {
@@ -70,6 +74,25 @@ export const exportToImage = (id: string, filename: string) => {
       link.href = canvas.toDataURL('image/png');
       link.download = filename;
       link.click();
+    });
+  }
+};
+export const exportToImage = (id: string, filename: string, width: number, height: number) => {
+  const element = document.getElementById(id);
+  if (element) {
+    const originalWidth = element.style.width;
+    const originalHeight = element.style.height;
+    element.style.width = `${width}px`;
+    element.style.height = `${height}px`;
+
+    html2canvas(element).then(canvas => {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.click();
+
+      element.style.width = originalWidth;
+      element.style.height = originalHeight;
     });
   }
 };
