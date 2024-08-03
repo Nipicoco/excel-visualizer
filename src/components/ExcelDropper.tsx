@@ -22,7 +22,7 @@ const ExcelDropper = ({ onDataChange }: { onDataChange: (data: any[]) => void })
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   return (
-    <div {...getRootProps()} className="border-dashed border-2 border-gray-400 p-5 text-center text-white cursor-pointer w-full">
+    <div {...getRootProps()} className="exceldropper border-dashed border-2 border-gray-400 p-5 text-center text-white cursor-pointer w-full">
       <input {...getInputProps()} />
       <p>Your Excel file here</p>
     </div>

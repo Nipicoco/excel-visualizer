@@ -270,6 +270,16 @@ const Page = () => {
     }
   }, [useDateRangeFilter, data]);
 
+  useEffect(() => {
+    if (!useLineChartDateRangeFilter) {
+      setLineChartStartYear(null);
+      setLineChartStartMonth(null);
+      setLineChartEndYear(null);
+      setLineChartEndMonth(null);
+      setLineChartData(data);
+    }
+  }, [useLineChartDateRangeFilter, data]);
+
   const handleDataChange = (newData: any[]) => {
     setLoading(true);
     const randomDelay = Math.random() * (2500 - 1000) + 1000;
