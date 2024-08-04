@@ -77,22 +77,21 @@ export const exportToImage2 = (id: string, filename: string) => {
     });
   }
 };
-export const exportToImage = (id: string, filename: string, width: number, height: number) => {
-  const element = document.getElementById(id);
+export const exportToImage = (elementId: string, fileName: string, width: number, height: number) => {
+  const element = document.getElementById(elementId);
   if (element) {
-    const originalWidth = element.style.width;
-    const originalHeight = element.style.height;
-    element.style.width = `${width}px`;
-    element.style.height = `${height}px`;
+    // Temporarily change the background color to white
+    const originalBackgroundColor = element.style.backgroundColor;
+    element.style.backgroundColor = 'white';
 
-    html2canvas(element).then(canvas => {
+    html2canvas(element, { width, height }).then(canvas => {
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
-      link.download = filename;
+      link.download = fileName;
       link.click();
 
-      element.style.width = originalWidth;
-      element.style.height = originalHeight;
+      // Revert the background color to the original
+      element.style.backgroundColor = originalBackgroundColor;
     });
   }
 };

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import FilesParticles from "@/components/FilesParticles";
 import ExcelDropper from "@/components/ExcelDropper";
+import ConfigDropper from "@/components/ConfigDropper";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LabelList, LineChart, Line } from 'recharts';
 import dayjs from 'dayjs';
 import Select from 'react-select';
@@ -46,6 +47,49 @@ const Page = () => {
   const [selectedFilterYear, setSelectedFilterYear] = useState<number | null>(null);
   const [selectedFilterMonth, setSelectedFilterMonth] = useState<number | null>(null);
   const [isLightMode, setIsLightMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasLineCharts = graphConfigs.some(config => config.selectedReferenceGraphType === 'area');
+
+  const importConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type !== "application/json") {
+        setError("Invalid file type. Please upload a JSON file.");
+        setLoading(false);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const importedConfigs = JSON.parse(content);
+          if (!Array.isArray(importedConfigs)) {
+            throw new Error("Invalid JSON structure.");
+          }
+          setGraphConfigs(importedConfigs);
+          setShowChartsHeader(true);
+          setError(null);
+        } catch (err) {
+          setError("Invalid JSON structure. Please upload a valid chart configuration file.");
+        }
+        setLoading(false);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const exportConfig = () => {
+    const dataStr = JSON.stringify(graphConfigs, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "chart-configs.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const toggleLightMode = () => {
     setIsLightMode(!isLightMode);
@@ -306,7 +350,7 @@ const Page = () => {
       setChartData(data);
     }
   }, [useDateRangeFilter, data]);
-
+  
   useEffect(() => {
     if (!useLineChartDateRangeFilter) {
       setLineChartStartYear(null);
@@ -317,13 +361,23 @@ const Page = () => {
     }
   }, [useLineChartDateRangeFilter, data]);
 
-  const handleDataChange = (newData: any[]) => {
+  const handleDataChange = (newData: any[], fileType: string) => {
     setLoading(true);
     const randomDelay = Math.random() * (2500 - 1000) + 1000;
     setTimeout(() => {
+      if (fileType !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && fileType !== "text/csv") {
+        setError("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
+        setLoading(false);
+        return;
+      }
+      if (!Array.isArray(newData) || newData.length === 0 || typeof newData[0] !== 'object') {
+        setError("Invalid Excel file structure. Please upload a valid Excel file.");
+        setLoading(false);
+        return;
+      }
       setData(newData);
       setLoading(false);
-      checkColumnAbsenceDays(newData); // Check for column "ימי היעדרות של הנפגע" after data is loaded
+      setError(null);
     }, randomDelay);
   };
 
@@ -372,13 +426,12 @@ const Page = () => {
   }, [filterLineChart, data, referenceColumn]);
   
   return (
-    
     <div className="page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10">
       <div className="absolute right-0 top-0 h-full w-full z-[1]">
         <FilesParticles />
       </div>
       <div className="flex flex-col gap-3 w-full md:w-4/5 z-[3] px-4">
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-4">
         <button className="bg-gray-800 text-white p-2 rounded-full" onClick={toggleLightMode}>
             {isLightMode ? "🌙✨" : "🌞🍃"}
           </button>
@@ -386,7 +439,13 @@ const Page = () => {
         <h1 className="text-[50px] text-white font-semibold text-right">
           .Drop your file here
         </h1>
-        <ExcelDropper onDataChange={handleDataChange} />
+        
+        <ExcelDropper onDataChange={(newData, fileType) => handleDataChange(newData, fileType)} />
+        {error && (
+        <div className="error-message bg-red-500 text-white p-2 rounded">
+          {error}
+        </div>
+      )}
         {loading ? (
           <div className="flex flex-col items-center mt-4">
             <ClipLoader color="#ffffff" size={50} />
@@ -420,7 +479,12 @@ const Page = () => {
                 </tbody>
               </table>
             </div>
-              
+            <ConfigDropper onConfigChange={importConfig} setLoading={setLoading} />
+            {error && (
+        <div className="error-message bg-red-500 text-white p-2 rounded">
+          {error}
+                </div>
+              )}
               <div className="mt-4 w-full flex flex-col items-center bg-black bg-opacity-70 p-4 rounded-lg">
                 <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Chart Configuration</h2>
                 <label htmlFor="column-select" className="text-white" dir="rtl" style={{ textAlign: 'right' }}>Select Column for Graph:</label>
@@ -458,7 +522,10 @@ const Page = () => {
                       </div>
                     )}
                     <div className="flex justify-center mt-4 w-full">
-                      <button onClick={addGraph} className="p-2 bg-green-500 text-white rounded w-full md:w-2/5">Add Graph</button>
+                      <button onClick={addGraph} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">Add Graph</button>
+                    </div>
+                    <div className="flex justify-center mt-4 w-full mb-4">
+                      <button onClick={exportConfig} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">Export Charts</button>
                     </div>
                   </>
                 )}
@@ -469,11 +536,9 @@ const Page = () => {
               <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'bar').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
-                    <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-center items-center mb-20">
+                    <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-ce nter items-center mb-20">
                       <h2 className="text-white text-center mb-2">Bar graph for {config.selectedColumn}</h2>
-                      <div className="mt-4 w-full flex justify-center">
-                        <button onClick={() => exportToImage(`bar-graph-${index}`, 'bar-chart.png', 800, 600)} className="p-2 text-white rounded" style={{ backgroundColor: 'transparent', color: 'White', marginTop: '30px' }}>Export Bar Chart</button>
-                      </div>
+                    
                       <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70" style={{ borderRadius: '10px', padding: '10px' }}>
                         <BarChart data={config.chartData} margin={{ right: 30, left: 20 }}>
                           <XAxis dataKey="name" interval={0} />
@@ -491,56 +556,58 @@ const Page = () => {
                   </div>
                 ))}
               </div>
-              <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Line charts</h2>
-              <div className="mt-4 w-full flex flex-col items-center">
-                <label className="text-white bg-black bg-opacity-70 p-4 rounded-lg">
-                  <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
-                  Date Range Filter
-                </label>
-              </div>
-              {useLineChartDateRangeFilter && (
-                <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
-                  <label className="text-white">From:</label>
-                  <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                    <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                      <option value="">Select a year</option>
-                      {years.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                      <option value="">Select a month</option>
-                      {months.map(month => (
-                        <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                      ))}
-                    </select>
+              {hasLineCharts && (
+                <>
+                  <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Line charts</h2>
+                  <div className="mt-4 w-full flex flex-col items-center">
+                    <label className="text-white bg-black bg-opacity-70 p-4 rounded-lg">
+                      <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
+                      Date Range Filter
+                    </label>
                   </div>
-                  <label className="text-white mt-4">Until:</label>
-                  <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                    <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                      <option value="">Select a year</option>
-                      {years.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                      <option value="">Select a month</option>
-                      {months.map(month => (
-                        <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
-                </div>
+                  {useLineChartDateRangeFilter && (
+                    <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
+                      <label className="text-white">From:</label>
+                      <div className="flex gap-2 w-full md:w-2/5 justify-center">
+                        <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                          <option value="">Select a year</option>
+                          {years.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                        <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                          <option value="">Select a month</option>
+                          {months.map(month => (
+                            <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <label className="text-white mt-4">Until:</label>
+                      <div className="flex gap-2 w-full md:w-2/5 justify-center">
+                        <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                          <option value="">Select a year</option>
+                          {years.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                        <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                          <option value="">Select a month</option>
+                          {months.map(month => (
+                            <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
+                    </div>
+                  )}
+                </>
               )}
               <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'area').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
                     <div id={`area-graph-${index}`} className="w-full h-full mt-4">
                       <h2 className="text-white text-center mb-2">Line graph for {config.selectedColumn}</h2>
-                      <div className="mt-4 w-full flex justify-center">
-                        <button onClick={() => exportToImage(`area-graph-${index}`, 'area-chart.png', 1000, 800)} className="text-white rounded" style={{ backgroundColor: 'black', color: 'White', opacity: '0.7'}}>Export Area Chart</button>
-                      </div>
+                      
                       <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70 rounded-lg">
                         <LineChart data={config.lineChartData} margin={{ top: 20, right: 30, left: 20}}>
                           <XAxis dataKey="year" interval={0} />

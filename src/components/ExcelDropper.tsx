@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDropzone, DropzoneOptions } from "react-dropzone";
 import * as XLSX from "xlsx";
 
-const ExcelDropper = ({ onDataChange }: { onDataChange: (data: any[]) => void }) => {
+const ExcelDropper = ({ onDataChange }: { onDataChange: (data: any[], fileType: string) => void }) => {
   const onDrop: DropzoneOptions['onDrop'] = (acceptedFiles) => {
     const file = acceptedFiles[0];
     const reader = new FileReader();
@@ -13,18 +13,24 @@ const ExcelDropper = ({ onDataChange }: { onDataChange: (data: any[]) => void })
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(sheet);
-        onDataChange(parsedData);
+        onDataChange(parsedData, file.type);
       }
     };
     reader.readAsBinaryString(file);
   };
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/csv': ['.csv']
+    }
+  });
 
   return (
     <div {...getRootProps()} className="exceldropper border-dashed border-2 border-gray-400 p-5 text-center text-white cursor-pointer w-full">
       <input {...getInputProps()} />
-      <p>Your Excel file here</p>
+      <p>Drop your Excel file here or click to select</p>
     </div>
   );
 };
