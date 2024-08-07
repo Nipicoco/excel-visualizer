@@ -59,7 +59,7 @@ const Page = () => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type !== "application/json") {
-        setJsonError("Invalid file type. Please upload a JSON file.");
+        setJsonError("סוג קובץ לא חוקי. אנא העלה קובץ JSON.");
         setLoading(false);
         setTimeout(() => setJsonError(null), 2000);
         return;
@@ -70,13 +70,13 @@ const Page = () => {
           const content = e.target?.result as string;
           const importedConfigs = JSON.parse(content);
           if (!Array.isArray(importedConfigs)) {
-            throw new Error("Invalid JSON structure. Please upload a valid chart configuration file.");
+            throw new Error("מבנה JSON לא חוקי. אנא העלה קובץ תצורת תרשים חוקי.");
           }
           setGraphConfigs(importedConfigs);
           setShowChartsHeader(true);
           setJsonError(null);
         } catch (err) {
-          setJsonError("Invalid JSON structure. Please upload a valid chart configuration file.");
+          setJsonError("מבנה JSON לא חוקי. אנא העלה קובץ תצורת תרשים חוקי.");
           setTimeout(() => setJsonError(null), 2000);
         }
         setLoading(false);
