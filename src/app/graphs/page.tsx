@@ -11,6 +11,8 @@ import { excelDateToJSDate, isDateColumn, exportToImage, getUniqueKeys } from "@
 import "@/app/globals.css";
 import { getRandomColor } from "@/utils";
 import { ClipLoader } from "react-spinners";
+import LightModeBackground from "@/components/LightMode";
+import NightModeBackground from "@/components/NightMode";
 
 const Page = () => {
   const [data, setData] = useState<any[]>([]);
@@ -47,7 +49,9 @@ const Page = () => {
   const [selectedFilterYear, setSelectedFilterYear] = useState<number | null>(null);
   const [selectedFilterMonth, setSelectedFilterMonth] = useState<number | null>(null);
   const [isLightMode, setIsLightMode] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [excelError, setExcelError] = useState<string | null>(null);
+
 
   const hasLineCharts = graphConfigs.some(config => config.selectedReferenceGraphType === 'area');
 
@@ -55,8 +59,9 @@ const Page = () => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type !== "application/json") {
-        setError("Invalid file type. Please upload a JSON file.");
+        setJsonError("Invalid file type. Please upload a JSON file.");
         setLoading(false);
+        setTimeout(() => setJsonError(null), 2000);
         return;
       }
       const reader = new FileReader();
@@ -65,13 +70,14 @@ const Page = () => {
           const content = e.target?.result as string;
           const importedConfigs = JSON.parse(content);
           if (!Array.isArray(importedConfigs)) {
-            throw new Error("Invalid JSON structure.");
+            throw new Error("Invalid JSON structure. Please upload a valid chart configuration file.");
           }
           setGraphConfigs(importedConfigs);
           setShowChartsHeader(true);
-          setError(null);
+          setJsonError(null);
         } catch (err) {
-          setError("Invalid JSON structure. Please upload a valid chart configuration file.");
+          setJsonError("Invalid JSON structure. Please upload a valid chart configuration file.");
+          setTimeout(() => setJsonError(null), 2000);
         }
         setLoading(false);
       };
@@ -93,16 +99,6 @@ const Page = () => {
 
   const toggleLightMode = () => {
     setIsLightMode(!isLightMode);
-    const pageContainer = document.querySelector('.page-container');
-    if (pageContainer) {
-      if (isLightMode) {
-        pageContainer.classList.remove('light-mode');
-        pageContainer.classList.add('dark-mode');
-      } else {
-        pageContainer.classList.remove('dark-mode');
-        pageContainer.classList.add('light-mode');
-      }
-    }
   };
 
   useEffect(() => {
@@ -122,10 +118,6 @@ const Page = () => {
       return null;
     }
   };
-  
-  
-  
-  
 
   const addGraph = () => {
     const newConfig = {
@@ -215,8 +207,8 @@ const Page = () => {
   };
 
   const referenceGraphTypeOptions = [
-    { value: 'bar', label: 'Bar Chart' },
-    { value: 'area', label: 'Area Chart' },
+    { value: 'bar', label: 'גרף עמודות' },
+    { value: 'area', label: 'גרף קווים' },
   ];
 
   const filterLineCharts = () => {
@@ -366,22 +358,25 @@ const Page = () => {
     const randomDelay = Math.random() * (2500 - 1000) + 1000;
     setTimeout(() => {
       if (fileType !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && fileType !== "text/csv") {
-        setError("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
+        setExcelError("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
         setLoading(false);
+        setTimeout(() => setExcelError(null), 2000);
         return;
       }
       if (!Array.isArray(newData) || newData.length === 0 || typeof newData[0] !== 'object') {
-        setError("Invalid Excel file structure. Please upload a valid Excel file.");
+        setExcelError("Invalid Excel file structure. Please upload a valid Excel file.");
         setLoading(false);
+        setTimeout(() => setExcelError(null), 2000);
         return;
       }
       setData(newData);
       setLoading(false);
-      setError(null);
+      setExcelError(null);
     }, randomDelay);
   };
 
   useEffect(() => {
+
     if (data.length > 0) {
       const columnExists = data[0].hasOwnProperty("תאריך הארוע");
       if (columnExists) {
@@ -426,10 +421,8 @@ const Page = () => {
   }, [filterLineChart, data, referenceColumn]);
   
   return (
-    <div className="page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10">
-      <div className="absolute right-0 top-0 h-full w-full z-[1]">
-        <FilesParticles />
-      </div>
+    <div className={`page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10 ${isLightMode ? 'light-mode' : 'dark-mode'}`}>
+      {isLightMode ? <LightModeBackground /> : <NightModeBackground />}
       <div className="flex flex-col gap-3 w-full md:w-4/5 z-[3] px-4">
         <div className="flex justify-end mt-4">
         <button className="bg-gray-800 text-white p-2 rounded-full" onClick={toggleLightMode}>
@@ -437,24 +430,25 @@ const Page = () => {
           </button>
         </div>
         <h1 className="text-[50px] text-white font-semibold text-right">
-          .Drop your file here
+          .השלך את הקובץ שלך כאן
         </h1>
         
         <ExcelDropper onDataChange={(newData, fileType) => handleDataChange(newData, fileType)} />
-        {error && (
-        <div className="error-message bg-red-500 text-white p-2 rounded">
-          {error}
-        </div>
-      )}
+        
+        {excelError && (
+          <div className="error-message bg-red-500 text-white p-2 rounded">
+            {excelError}
+          </div>
+        )}
         {loading ? (
           <div className="flex flex-col items-center mt-4">
             <ClipLoader color="#ffffff" size={50} />
-            <p className="text-white mt-2">Loading data, please wait</p>
+            <p className="text-white mt-2">טוען נתונים, אנא המתן</p>
           </div>
         ) : (
           data.length > 0 && (
             <>
-              <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Excel Data</h2>
+              <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">נתוני Excel</h2>
               <div className="overflow-auto max-h-[40rem] w-full rounded-lg" style={{borderRadius: '10px' }}>
               <table className="min-w-full bg-white w-full rounded-lg bg-black bg-opacity-40 text-white">
                 <thead className="rounded-t-lg">
@@ -480,16 +474,16 @@ const Page = () => {
               </table>
             </div>
             <ConfigDropper onConfigChange={importConfig} setLoading={setLoading} />
-            {error && (
+            {jsonError && (
         <div className="error-message bg-red-500 text-white p-2 rounded">
-          {error}
+          {jsonError}
                 </div>
               )}
               <div className="mt-4 w-full flex flex-col items-center bg-black bg-opacity-70 p-4 rounded-lg">
-                <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">Chart Configuration</h2>
-                <label htmlFor="column-select" className="text-white" dir="rtl" style={{ textAlign: 'right' }}>Select Column for Graph:</label>
+                <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">תצורת גרף</h2>
+                <label htmlFor="column-select" className="text-white" dir="rtl" style={{ textAlign: 'right' }}>בחר עמודה לגרף:</label>
                 <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-2/5" dir="rtl">
-                  <option value="">None</option>
+                  <option value="">ללא</option>
                   {Object.keys(data[0]).map((key) => (
                     <option key={key} value={key}>{key}</option>
                   ))}
@@ -498,7 +492,7 @@ const Page = () => {
                   <>
                     {referenceColumn && (
                       <div className="mt-4 w-full flex flex-col items-center">
-                        <label htmlFor="reference-graph-type-select" className="text-white" dir="rtl">Select Graph:</label>
+                        <label htmlFor="reference-graph-type-select" className="text-white" dir="rtl">בחר גרף:</label>
                         <Select
                           id="reference-graph-type-select"
                           value={selectedReferenceGraphType ? { value: selectedReferenceGraphType, label: referenceGraphTypeOptions.find(option => option.value === selectedReferenceGraphType)?.label } : null}
@@ -510,7 +504,7 @@ const Page = () => {
                     )}
                     {isAnyReferenceGraphChecked && (
                       <div className="mt-4 w-full flex flex-col items-center text-right">
-                        <label htmlFor="name-select" className="text-white" dir="rtl">Select Names to Display:</label>
+                        <label htmlFor="name-select" className="text-white" dir="rtl">בחר שמות להצגה:</label>
                         <Select
                           id="name-select"
                           isMulti
@@ -522,22 +516,22 @@ const Page = () => {
                       </div>
                     )}
                     <div className="flex justify-center mt-4 w-full">
-                      <button onClick={addGraph} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">Add Graph</button>
+                      <button onClick={addGraph} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">הוסף גרף</button>
                     </div>
                     <div className="flex justify-center mt-4 w-full mb-4">
-                      <button onClick={exportConfig} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">Export Charts</button>
+                      <button onClick={exportConfig} className="p-2 bg-blue-500 bg-opacity-70 text-white rounded w-full md:w-2/5">ייצא גרפים</button>
                     </div>
                   </>
                 )}
               </div>
               {graphConfigs.some(config => config.selectedReferenceGraphType === 'bar') && showChartsHeader && (
-                <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Box Charts</h2>
+                <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">גרפי עמודות</h2>
               )}
               <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'bar').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
                     <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-ce nter items-center mb-20">
-                      <h2 className="text-white text-center mb-2">Bar graph for {config.selectedColumn}</h2>
+                      <h2 className="text-white text-center mb-2">גרף עמודות עבור {config.selectedColumn}</h2>
                     
                       <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70" style={{ borderRadius: '10px', padding: '10px' }}>
                         <BarChart data={config.chartData} margin={{ right: 30, left: 20 }}>
@@ -558,46 +552,46 @@ const Page = () => {
               </div>
               {hasLineCharts && (
                 <>
-                  <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">Line charts</h2>
+                  <h2 className="bg-black bg-opacity-70 p-4 rounded-lg text-[30px] text-white font-semibold mt-4 text-center">גרפי קווים</h2>
                   <div className="mt-4 w-full flex flex-col items-center">
                     <label className="text-white bg-black bg-opacity-70 p-4 rounded-lg">
                       <input type="checkbox" checked={useLineChartDateRangeFilter} onChange={() => setUseLineChartDateRangeFilter(!useLineChartDateRangeFilter)} className="mr-2" />
-                      Date Range Filter
+                      מסנן טווח תאריכים
                     </label>
                   </div>
                   {useLineChartDateRangeFilter && (
                     <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
-                      <label className="text-white">From:</label>
+                      <label className="text-white">מ:</label>
                       <div className="flex gap-2 w-full md:w-2/5 justify-center">
                         <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                          <option value="">Select a year</option>
+                          <option value="">בחר שנה</option>
                           {years.map(year => (
                             <option key={year} value={year}>{year}</option>
                           ))}
                         </select>
                         <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                          <option value="">Select a month</option>
+                          <option value="">בחר חודש</option>
                           {months.map(month => (
                             <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
                           ))}
                         </select>
                       </div>
-                      <label className="text-white mt-4">Until:</label>
+                      <label className="text-white mt-4">עד:</label>
                       <div className="flex gap-2 w-full md:w-2/5 justify-center">
                         <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                          <option value="">Select a year</option>
+                          <option value="">בחר שנה</option>
                           {years.map(year => (
                             <option key={year} value={year}>{year}</option>
                           ))}
                         </select>
                         <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
-                          <option value="">Select a month</option>
+                          <option value="">בחר חודש</option>
                           {months.map(month => (
                             <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
                           ))}
                         </select>
                       </div>
-                      <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">Filter</button>
+                      <button onClick={filterLineCharts} className="mt-4 p-2 bg-green-500 text-white rounded w-full md:w-2/5">סנן</button>
                     </div>
                   )}
                 </>
@@ -606,7 +600,7 @@ const Page = () => {
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'area').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
                     <div id={`area-graph-${index}`} className="w-full h-full mt-4">
-                      <h2 className="text-white text-center mb-2">Line graph for {config.selectedColumn}</h2>
+                      <h2 className="text-white text-center mb-2">גרף קווים עבור {config.selectedColumn}</h2>
                       
                       <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70 rounded-lg">
                         <LineChart data={config.lineChartData} margin={{ top: 20, right: 30, left: 20}}>

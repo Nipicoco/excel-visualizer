@@ -28,9 +28,9 @@ const ExcelDropper = ({ onDataChange }: { onDataChange: (data: any[], fileType: 
   });
 
   return (
-    <div {...getRootProps()} className="exceldropper border-dashed border-2 border-gray-400 p-5 text-center text-white cursor-pointer w-full">
+    <div {...getRootProps()} className="exceldropper border-dashed border-2 border-gray-400 p-5 text-center text-white cursor-pointer w-full" dir="rtl">
       <input {...getInputProps()} />
-      <p>Drop your Excel file here or click to select</p>
+      <p>השלך את קובץ ה-Excel שלך כאן או לחץ לבחירה</p>
     </div>
   );
 };

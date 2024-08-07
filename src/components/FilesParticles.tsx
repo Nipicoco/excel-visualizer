@@ -55,7 +55,7 @@ const Particle = () => {
           },
           move: {
             enable: true,
-            direction: "top-right",
+            direction: "top-left",
             outModes: {
               default: "bounce",
             },

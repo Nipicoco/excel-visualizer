@@ -39,8 +39,8 @@ const Page = () => {
         <FilesParticles />
       </div>
       <div className="flex flex-col gap-3 w-full md:w-1/2 z-[3] px-4">
-        <h1 className="text-[50px] text-white font-semibold">
-          Drop your file here<span className="text-red-500">.</span>
+        <h1 className="text-[50px] text-white font-semibold" dir="rtl">
+          השלך את הקובץ שלך כאן<span className="text-red-500">.</span>
         </h1>
         <p className="max-w-[400px] text-[16px] text-gray-200 md:text-gray-400">
           Just drag and drop or click to select a file, and we will handle the rest.
