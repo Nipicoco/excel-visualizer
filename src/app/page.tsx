@@ -62,61 +62,38 @@ export default function Home() {
   };
 
   return (
-    <main className={`flex items-center h-screen relative ${isLightMode ? 'light-mode' : 'dark-mode'}`} dir="rtl">
-      {isLightMode ? <LightModeBackground /> : <NightModeBackground />}
-      <Navbar />
-      <Sidebar />
-      
-      <div className="flex flex-col gap-3 z-[10] p-10 md:pl-40 md:pr-5 md:pt-5 w-full" style={{ textAlign: 'right' }}>
-      <button className="bg-gray-800 text-white p-1 rounded-full w-10 h-10 flex items-center justify-center" onClick={toggleLightMode}>
-          {isLightMode ? "🌙" : "🌞"}
-        </button>
+    <CSSTransition in={true} appear={true} timeout={500} classNames="fade">
+      <main className={`flex items-center h-screen relative ${isLightMode ? 'light-mode' : 'dark-mode'}`} dir="rtl">
+        {isLightMode ? <LightModeBackground /> : <NightModeBackground />}
+        <Navbar />
+        <Sidebar />
         
-        <h1 className="text-[35px] md:text-[55px] text-white w-4/4 animate__animated animate__fadeIn">
-          {title}
-        </h1>
-        <p className="text-[16px] text-gray-200 mb-10 w-full animate__animated animate__fadeIn animate__delay-1s">
-          הגיע הזמן להפוך את נתוני Excel שלך לתובנות חזקות, פשוטות כמו טעינה, בחירה ולחיצה על כפתור.
-        </p>
-        <p className="text-[16px] text-gray-200 mb-10 w-full animate__animated animate__fadeIn animate__delay-2s">
-        לא מסובך. פשוט לתפעול. אין צורך בכתיבת קוד או פורמולות.
-        </p>
-        
-        
-        <div className="mt-10 animate__animated animate__fadeIn animate__delay-3s p-5 text-white">
-          <CSSTransition in={showLineChart} timeout={500} classNames="chart" unmountOnExit>
-            <AreaChart width={700} height={400} data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Area type="monotone" dataKey="pv" stroke="#8884d8" fill="url(#colorPv)" />
-              <Area type="monotone" dataKey="uv" stroke="#82ca9d" fill="url(#colorUv)" />
-              <defs>
-                <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-            </AreaChart>
-          </CSSTransition>
-          <CSSTransition in={!showLineChart} timeout={500} classNames="chart" unmountOnExit>
-            <BarChart width={700} height={400} data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="pv" fill="#8884d8" />
-              <Bar dataKey="uv" fill="#82ca9d" />
-            </BarChart>
-          </CSSTransition>
+        <div className="flex flex-col gap-3 z-[10] p-10 md:pl-40 md:pr-5 md:pt-5 w-full" style={{ textAlign: 'right' }}>
+        <button className="bg-gray-800 text-white p-1 rounded-full w-10 h-10 flex items-center justify-center" onClick={toggleLightMode}>
+            {isLightMode ? "🌙" : "🌞"}
+          </button>
+          
+          <h1 className="text-[35px] md:text-[55px] text-white w-4/4 animate__animated animate__fadeIn">
+            {title}
+          </h1>
+          <p className="text-[16px] text-gray-200 mb-10 w-full animate__animated animate__fadeIn animate__delay-1s">
+            הגיע הזמן להפוך את נתוני Excel שלך לתובנות חזקות, פשוטות כמו טעינה, בחירה ולחיצה על כפתור.
+          </p>
+          <p className="text-[16px] text-gray-200 mb-10 w-full animate__animated animate__fadeIn animate__delay-2s">
+          לא מסובך. פשוט לתפעול. אין צורך בכתיבת קוד או פורמולות.
+          </p>
+          
+          
+          <div className="mt-10 animate__animated animate__fadeIn animate__delay-3s p-5 text-white">
+            <Link href="/graphs">
+              <Button style={{ backgroundColor: '#2563eb', color: 'white' }}> 
+                לתרשים
+              </Button>
+            </Link>
+          </div>
+            
         </div>
-        
-      </div>
-    </main>
+      </main>
+    </CSSTransition>
   );
 }

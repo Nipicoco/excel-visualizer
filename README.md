@@ -1,22 +1,37 @@
-# An Excel Data Visualization Tool
+An Excel Data Visualization Tool
 
-## How To Use
+Requirements:
+- Node.js (>= 14.x)
+- npm (>= 6.x) or yarn (>= 1.x)
+
+How To Use:
 
 Install with npm or yarn
 
-```bash
-# Clone this repository
-$ git clone https://github.com/Nipicoco/excel-visualizer.git
+1. Clone this repository
+   $ git clone https://github.com/Nipicoco/excel-visualizer.git
 
-# Go into the repository
-$ cd excel-visualization
+2. Go into the repository
+   $ cd excel-visualizer
 
-# Install dependencies
-$ npm install
+3. Install dependencies
+   $ npm install
+   # or
+   $ yarn install
 
-$ npm run dev
-```
+4. Start the development server
+   $ npm run dev
+   # or
+   $ yarn dev
 
-## :memo: License
+Setup the Page:
 
-This project is under the MIT license.
+1. Ensure you have the required versions of Node.js and npm/yarn installed.
+2. Clone the repository and navigate into it.
+3. Install the dependencies using npm or yarn.
+4. Start the development server using the appropriate command.
+5. Open your browser and navigate to http://localhost:3000 or http://localhost:3000/graphs to view the application.
+
+
+
+

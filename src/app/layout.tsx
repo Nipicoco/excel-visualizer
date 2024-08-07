@@ -6,8 +6,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Excel Data Visualization Tool",
-  description: "This is a site that allows you to visualize your excel data easier and interact with it.",
+  title: "כלי תצורת תרשים באקסל",
+  description: "כלי תצורת תרשים באקסל",
 };
 
 export default function RootLayout({
