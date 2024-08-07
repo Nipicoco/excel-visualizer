@@ -35,3 +35,10 @@ Setup the Page:
 
 
 
+Generate a Graph:
+
+1. Open the application in your browser by navigating to http://localhost:3000/graphs.
+2. Select the type of graph you want to generate (e.g., bar chart, line chart) from the available options.
+3. Choose the column names you want to display in the graph.
+4. Click the "Generate" button.
+5. Your graph will be generated and displayed based on the selected options.
