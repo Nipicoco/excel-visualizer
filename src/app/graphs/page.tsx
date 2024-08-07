@@ -190,7 +190,7 @@ const Page = () => {
     const selected = selectedOption ? selectedOption.value : "";
     setSelectedReferenceGraphType(selected);
     if (selected === 'bar') {
-      setUseDateRangeFilter(false); // Hide date range filter if bar chart is selected
+      setUseDateRangeFilter(false); 
     }
   };
 
@@ -245,7 +245,9 @@ const Page = () => {
 
     setGraphConfigs(updatedConfigs);
   };
-
+  const removeGraph = (index: number) => {
+    setGraphConfigs(prevConfigs => prevConfigs.filter((_, i) => i !== index));
+};
   useEffect(() => {
     if (selectedColumn && data.length > 0) {
       const filteredData = useLineChartDateRangeFilter && lineChartStartYear !== null && lineChartStartMonth !== null && lineChartEndYear !== null && lineChartEndMonth !== null
@@ -358,13 +360,13 @@ const Page = () => {
     const randomDelay = Math.random() * (2500 - 1000) + 1000;
     setTimeout(() => {
       if (fileType !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && fileType !== "text/csv") {
-        setExcelError("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
+        setExcelError("סוג קובץ לא חוקי. אנא העלה קובץ Excel (.xlsx) או CSV (.csv).");
         setLoading(false);
         setTimeout(() => setExcelError(null), 2000);
         return;
       }
       if (!Array.isArray(newData) || newData.length === 0 || typeof newData[0] !== 'object') {
-        setExcelError("Invalid Excel file structure. Please upload a valid Excel file.");
+        setExcelError("מבנה קובץ Excel לא חוקי. אנא העלה קובץ Excel חוקי.");
         setLoading(false);
         setTimeout(() => setExcelError(null), 2000);
         return;
@@ -393,9 +395,6 @@ const Page = () => {
           setYears([]);
           setMonths([]);
         }
-        console.log("Reference column 'event date' found and selected.");
-      } else {
-        console.log("Reference column 'event date' not found.");
       }
     }
   }, [data]);
@@ -532,10 +531,11 @@ const Page = () => {
               <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'bar').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
-                    <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-ce nter items-center mb-20">
+                    <div id={`bar-graph-${index}`} className="chart-item w-full h-full flex flex-col justify-center items-center mb-20">
                       <h2 className="text-white text-center mb-2">גרף עמודות עבור {config.selectedColumn}</h2>
-                    
-                      <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70" style={{ borderRadius: '10px', padding: '10px' }}>
+                      <button onClick={() => removeGraph(index)} className="bg-transparent text-white p-2 rounded border border-dotted border-white">הסר גרף</button>
+
+                      <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70 " style={{ borderRadius: '10px', padding: '10px' }}>
                         <BarChart data={config.chartData} margin={{ right: 30, left: 20 }}>
                           <XAxis dataKey="name" interval={0} />
                           <YAxis padding={{ top: 20 }} />
@@ -601,9 +601,10 @@ const Page = () => {
               <div className="charts-container grid grid-cols-1 md:grid-cols-2 gap-4">
                 {graphConfigs.filter(config => config.selectedReferenceGraphType === 'area').map((config, index) => (
                   <div key={index} className="chart-item mt-4 w-full h-[300px] md:h-[500px] p-4 gap-4">
-                    <div id={`area-graph-${index}`} className="w-full h-full mt-4">
+                    <div id={`area-graph-${index}`} className="w-full h-full mt-4 flex flex-col justify-center items-center">
                       <h2 className="text-white text-center mb-2">גרף קווים עבור {config.selectedColumn}</h2>
-                      
+                      <button onClick={() => removeGraph(index)} className="bg-transparent text-white p-2 rounded border border-dotted border-white">הסר גרף</button>
+
                       <ResponsiveContainer width="100%" height="100%" className="bg-black bg-opacity-70 rounded-lg">
                         <LineChart data={config.lineChartData} margin={{ top: 20, right: 30, left: 20}}>
                           <XAxis dataKey="year" interval={0} />
