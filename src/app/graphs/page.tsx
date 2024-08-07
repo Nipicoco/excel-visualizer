@@ -207,8 +207,8 @@ const Page = () => {
   };
 
   const referenceGraphTypeOptions = [
-    { value: 'bar', label: 'גרף עמודות' },
-    { value: 'area', label: 'גרף קווים' },
+    { value: 'bar', label: 'תרשים עמודות' },
+    { value: 'area', label: 'תרשים שטח' },
   ];
 
   const filterLineCharts = () => {
@@ -421,7 +421,7 @@ const Page = () => {
   }, [filterLineChart, data, referenceColumn]);
   
   return (
-    <div className={`page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10 ${isLightMode ? 'light-mode' : 'dark-mode'}`}>
+    <div  className={`page-container flex items-center justify-center gap-5 flex-col md:flex-row min-h-screen w-full overflow-x-hidden rtl pb-10 ${isLightMode ? 'light-mode' : 'dark-mode'}`}>
       {isLightMode ? <LightModeBackground /> : <NightModeBackground />}
       <div className="flex flex-col gap-3 w-full md:w-4/5 z-[3] px-4">
         <div className="flex justify-end mt-4">
@@ -482,7 +482,7 @@ const Page = () => {
               <div className="mt-4 w-full flex flex-col items-center bg-black bg-opacity-70 p-4 rounded-lg">
                 <h2 className="text-[30px] text-white font-semibold mt-4 text-right" dir="rtl">תצורת גרף</h2>
                 <label htmlFor="column-select" className="text-white" dir="rtl" style={{ textAlign: 'right' }}>בחר עמודה לגרף:</label>
-                <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-2/5" dir="rtl">
+                <select id="column-select" value={selectedColumn} onChange={handleColumnChange} className="mt-2 p-2 rounded w-full md:w-2/5 text-black" dir="rtl">
                   <option value="">ללא</option>
                   {Object.keys(data[0]).map((key) => (
                     <option key={key} value={key}>{key}</option>
@@ -499,6 +499,7 @@ const Page = () => {
                           onChange={handleReferenceGraphTypeChange}
                           options={referenceGraphTypeOptions}
                           className="mt-2 w-full md:w-2/5 text-right"
+                          styles={{ control: (base) => ({ ...base, color: 'black' }) }}
                         />
                       </div>
                     )}
@@ -512,6 +513,7 @@ const Page = () => {
                           onChange={handleNameChange}
                           options={getUniqueKeys(lineChartData).map(key => ({ value: key, label: key }))}
                           className="mt-2 w-full md:w-2/5"
+                          styles={{ control: (base) => ({ ...base, color: 'black' }) }}
                         />
                       </div>
                     )}
@@ -563,13 +565,13 @@ const Page = () => {
                     <div className="mt-4 w-full flex flex-col items-center justify-center" dir="rtl">
                       <label className="text-white">מ:</label>
                       <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                        <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                        <select value={lineChartStartYear ?? ''} onChange={(e) => setLineChartStartYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5 text-black">
                           <option value="">בחר שנה</option>
                           {years.map(year => (
                             <option key={year} value={year}>{year}</option>
                           ))}
                         </select>
-                        <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                        <select value={lineChartStartMonth ?? ''} onChange={(e) => setLineChartStartMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5 text-black">
                           <option value="">בחר חודש</option>
                           {months.map(month => (
                             <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
@@ -578,13 +580,13 @@ const Page = () => {
                       </div>
                       <label className="text-white mt-4">עד:</label>
                       <div className="flex gap-2 w-full md:w-2/5 justify-center">
-                        <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                        <select value={lineChartEndYear ?? ''} onChange={(e) => setLineChartEndYear(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5 text-black">
                           <option value="">בחר שנה</option>
                           {years.map(year => (
                             <option key={year} value={year}>{year}</option>
                           ))}
                         </select>
-                        <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5">
+                        <select value={lineChartEndMonth ?? ''} onChange={(e) => setLineChartEndMonth(parseInt(e.target.value, 10))} className="p-2 rounded w-full md:w-3/5 text-black">
                           <option value="">בחר חודש</option>
                           {months.map(month => (
                             <option key={month} value={month}>{dayjs().month(month).format('MMMM')}</option>
