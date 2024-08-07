@@ -42,7 +42,7 @@ const chartConfig = {
  
 export default function Home() {
   const [title, setTitle] = useState("");
-  const fullTitle = "ברוכים הבאים לפרוייט שמנתח את האקסל שלך תוך שניות";
+  const fullTitle = "ברוכים הבאים לפרוייקט שמנתח את האקסל שלך תוך שניות";
   const [data, setData] = useState(generateRandomData());
   const [showLineChart, setShowLineChart] = useState(true);
   const [isLightMode, setIsLightMode] = useState(false);
